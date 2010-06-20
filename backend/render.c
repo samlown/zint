@@ -337,7 +337,7 @@ int render_plot(struct zint_symbol *symbol, unsigned int hide_text, float width,
 					textpart[0] = symbol->text[0];
 					textpart[1] = '\0';
 					textpos = -5; // 7
-          textwidth = 7.0;
+          textwidth = 6.5;
 					render_plot_add_string(symbol, textpart, (textpos + xoffset) * scaler, default_text_posn, 9.0 * scaler, textwidth * scaler, &last_string);
 
 					for(i = 0; i < 6; i++) {
@@ -345,7 +345,7 @@ int render_plot(struct zint_symbol *symbol, unsigned int hide_text, float width,
 					}
 					textpart[6] = '\0';
 					textpos = 25;
-          textwidth = 6.0 * 7.0;
+          textwidth = 6.0 * 6.5;
 					render_plot_add_string(symbol, textpart, (textpos + xoffset) * scaler, default_text_posn, 9.0 * scaler, textwidth * scaler, &last_string);
 					for(i = 0; i < 6; i++) {
 						textpart[i] = symbol->text[i + 7];
@@ -357,12 +357,12 @@ int render_plot(struct zint_symbol *symbol, unsigned int hide_text, float width,
 					switch(strlen(addon)) {
 						case 2:	
 							textpos = xoffset + 114;
-              textwidth = 2.0 * 7.0;
+              textwidth = 2.0 * 6.5;
 							render_plot_add_string(symbol, addon, textpos * scaler, addon_text_posn * scaler, 9.0 * scaler, textwidth * scaler, &last_string);
 							break;
 						case 5:
 							textpos = xoffset + 128;
-              textwidth = 5.0 * 7.0;
+              textwidth = 5.0 * 6.5;
 							render_plot_add_string(symbol, addon, textpos * scaler, addon_text_posn * scaler, 9.0 * scaler, textwidth * scaler, &last_string);
 							break;
 					}

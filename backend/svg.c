@@ -167,7 +167,7 @@ int svg_plot(struct zint_symbol *symbol)
 	}
 	addon[r] = '\0';
 	
-	if((symbol->show_hrt == 0) || (ustrlen(symbol->text) != 0)) {
+	if((symbol->show_hrt == 0) || (ustrlen(symbol->text) == 0)) {
 		plot_text = 0;
 	}
 	if(plot_text) {
@@ -569,17 +569,6 @@ int svg_plot(struct zint_symbol *symbol)
 	xoffset -= comp_offset;
 
 	switch(symbol->symbology) {
-		case BARCODE_CODABLOCKF:
-		case BARCODE_HIBC_BLOCKF:
-			fprintf(fsvg, "      <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" />\n", xoffset * scaler, 0.0, symbol->width * scaler, symbol->border_width * scaler);
-			fprintf(fsvg, "      <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" />\n", xoffset * scaler, (symbol->height + symbol->border_width) * scaler, symbol->width * scaler, symbol->border_width * scaler);
-			if(symbol->rows > 1) {
-				/* row binding */
-				for(r = 1; r < symbol->rows; r++) {
-					fprintf(fsvg, "      <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" />\n", (xoffset + 11) * scaler, ((r * row_height) + yoffset - 1) * scaler, (symbol->width - 24) * scaler, 2.0 * scaler);
-				}
-			}
-			break;
 		case BARCODE_MAXICODE:
 			/* Do nothing! (It's already been done) */
 			break;

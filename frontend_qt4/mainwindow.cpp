@@ -120,8 +120,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WFlags fl)
 	connect(chkComposite, SIGNAL(stateChanged( int )), SLOT(composite_enable()));
 	connect(chkComposite, SIGNAL(stateChanged( int )), SLOT(update_preview()));
 	connect(cmbCompType, SIGNAL(currentIndexChanged( int )), SLOT(update_preview()));
-	connect(rotateSlider, SIGNAL(valueChanged(int)), SLOT(scaleRotate()));
-	connect(scaleSlider, SIGNAL(valueChanged(int)), SLOT(scaleRotate()));
 	connect(spnWhitespace, SIGNAL(valueChanged( int )), SLOT(update_preview()));
 	connect(btnAbout, SIGNAL(clicked( bool )), SLOT(about()));
 	connect(btnSave, SIGNAL(clicked( bool )), SLOT(save()));
@@ -131,10 +129,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WFlags fl)
 	connect(btnMoreData, SIGNAL(clicked( bool )), SLOT(open_data_dialog()));
 	connect(btnSequence, SIGNAL(clicked( bool )), SLOT(open_sequence_dialog()));
 	connect(chkHRTHide, SIGNAL(stateChanged( int )), SLOT(update_preview()));
-	connect(btnZoomIn, SIGNAL(clicked(void)), SLOT(zoomIn(void)));
-	connect(btnZoomOut, SIGNAL(clicked(void)), SLOT(zoomOut(void)));
-	connect(btnRotateLeft, SIGNAL(clicked(void)), SLOT(rotateLeft(void)));
-	connect(btnRotatRight, SIGNAL(clicked(void)), SLOT(rotateRight(void)));
 }
 
 MainWindow::~MainWindow()
@@ -143,18 +137,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::reset_view()
 {
-	scaleSlider->setSliderPosition( 100 );
-	rotateSlider->setSliderPosition( 0 );
 	m_fgcolor=qRgb(0,0,0);
 	m_bgcolor=qRgb(0xff,0xff,0xff);
 	update_preview();
-}
-
-void MainWindow::scaleRotate()
-{
-	view->resetTransform();
-	view->rotate(rotateSlider->value());
-	view->scale((double)scaleSlider->value()/100,(double)scaleSlider->value()/100);
 }
 
 bool MainWindow::save()
@@ -355,7 +340,7 @@ void MainWindow::change_options()
 		tabMain->insertTab(1,m_optionWidget,tr("Code 16K"));
 		connect(m_optionWidget->findChild<QObject*>("radC16kStand"), SIGNAL(toggled( bool )), SLOT(update_preview()));
 	}
-
+	
 	if(metaObject()->enumerator(0).value(bstyle->currentIndex()) == BARCODE_DATAMATRIX)
 	{
 		QFile file(":/grpDM.ui");
@@ -364,17 +349,13 @@ void MainWindow::change_options()
 		m_optionWidget=uiload.load(&file);
 		file.close();
 		tabMain->insertTab(1,m_optionWidget,tr("Data Matrix"));
-		connect(m_optionWidget->findChild<QObject*>("cmbDMMode"), SIGNAL(currentIndexChanged( int )), SLOT(update_preview()));
-		connect(m_optionWidget->findChild<QObject*>("cmbDMMode"), SIGNAL(currentIndexChanged( int )), SLOT(datamatrix_options()));
 		connect(m_optionWidget->findChild<QObject*>("radDM200Stand"), SIGNAL(clicked( bool )), SLOT(update_preview()));
 		connect(m_optionWidget->findChild<QObject*>("radDM200GS1"), SIGNAL(clicked( bool )), SLOT(update_preview()));
 		connect(m_optionWidget->findChild<QObject*>("radDM200HIBC"), SIGNAL(clicked( bool )), SLOT(update_preview()));
 		connect(m_optionWidget->findChild<QObject*>("cmbDM200Size"), SIGNAL(currentIndexChanged( int )), SLOT(update_preview()));
-		connect(m_optionWidget->findChild<QObject*>("cmbDMNon200Size"), SIGNAL(currentIndexChanged( int )), SLOT(update_preview()));
 		connect(m_optionWidget->findChild<QObject*>("chkDMRectangle"), SIGNAL(stateChanged( int )), SLOT(update_preview()));
-		datamatrix_options();
 	}
-
+	
 	if(metaObject()->enumerator(0).value(bstyle->currentIndex()) == BARCODE_QRCODE)
 	{
 		QFile file(":/grpQR.ui");
@@ -529,23 +510,6 @@ void MainWindow::composite_ean_check()
 		return;
 	if(!m_optionWidget->findChild<QRadioButton*>("radC128EAN")->isChecked())
 		chkComposite->setChecked(false);
-}
-
-
-void MainWindow::datamatrix_options()
-{
-	if (metaObject()->enumerator(0).value(bstyle->currentIndex())!=BARCODE_DATAMATRIX)
-		return;
-	if(m_optionWidget->findChild<QComboBox*>("cmbDMMode")->currentIndex() == 0)
-	{
-		m_optionWidget->findChild<QGroupBox*>("grpDMNon200")->hide();
-		m_optionWidget->findChild<QGroupBox*>("grpDM200")->show();
-	}
-	else
-	{
-		m_optionWidget->findChild<QGroupBox*>("grpDM200")->hide();
-		m_optionWidget->findChild<QGroupBox*>("grpDMNon200")->show();
-	}
 }
 
 void MainWindow::maxi_primary()
@@ -733,41 +697,23 @@ void MainWindow::update_preview()
 				m_bc.bc.setInputMode(GS1_MODE);
 			break;
 
-		case BARCODE_CODABLOCKF:
-			if(m_optionWidget->findChild<QRadioButton*>("radCodaGS1")->isChecked())
+		case BARCODE_DATAMATRIX:
+			m_bc.bc.setSecurityLevel(1);
+			if(m_optionWidget->findChild<QRadioButton*>("radDM200HIBC")->isChecked())
+				m_bc.bc.setSymbol(BARCODE_HIBC_DM);
+			else
+				m_bc.bc.setSymbol(BARCODE_DATAMATRIX);
+
+			if(m_optionWidget->findChild<QRadioButton*>("radDM200GS1")->isChecked())
 				m_bc.bc.setInputMode(GS1_MODE);
 
-			if(m_optionWidget->findChild<QRadioButton*>("radCodaHIBC")->isChecked())
-				m_bc.bc.setSymbol(BARCODE_HIBC_BLOCKF);
+			m_bc.bc.setWidth(m_optionWidget->findChild<QComboBox*>("cmbDM200Size")->currentIndex());
+			if(m_optionWidget->findChild<QCheckBox*>("chkDMRectangle")->isChecked())
+				m_bc.bc.setOption3(DM_SQUARE);
 			else
-				m_bc.bc.setSymbol(BARCODE_CODABLOCKF);
+				m_bc.bc.setOption3(0);
 			break;
-
-		case BARCODE_DATAMATRIX:
-			m_bc.bc.setSecurityLevel(m_optionWidget->findChild<QComboBox*>("cmbDMMode")->currentIndex() + 1);
-			if(m_optionWidget->findChild<QComboBox*>("cmbDMMode")->currentIndex() == 0) 
-			{	/* ECC 200 */
-				if(m_optionWidget->findChild<QRadioButton*>("radDM200HIBC")->isChecked())
-					m_bc.bc.setSymbol(BARCODE_HIBC_DM);
-				else
-					m_bc.bc.setSymbol(BARCODE_DATAMATRIX);
-
-				if(m_optionWidget->findChild<QRadioButton*>("radDM200GS1")->isChecked())
-					m_bc.bc.setInputMode(GS1_MODE);
-
-				m_bc.bc.setWidth(m_optionWidget->findChild<QComboBox*>("cmbDM200Size")->currentIndex());
-				if(m_optionWidget->findChild<QCheckBox*>("chkDMRectangle")->isChecked())
-					m_bc.bc.setOption3(DM_SQUARE);
-				else
-					m_bc.bc.setOption3(0);
-			} 
-			else
-			{	/* Not ECC 200 */
-				m_bc.bc.setSymbol(BARCODE_DATAMATRIX);
-				m_bc.bc.setWidth(m_optionWidget->findChild<QComboBox*>("cmbDMNon200Size")->currentIndex());
-			}
-			break;
-
+			
 		case BARCODE_QRCODE:
 			if(m_optionWidget->findChild<QRadioButton*>("radQRHIBC")->isChecked())
 				m_bc.bc.setSymbol(BARCODE_HIBC_QR);
@@ -852,23 +798,3 @@ void MainWindow::update_preview()
 	view->scene()->update();
 }
 
-void
-MainWindow::zoomIn(void)
-{
-	scaleSlider->setValue(scaleSlider->value() + scaleSlider->singleStep());
-}
-void
-MainWindow::zoomOut(void)
-{
-	scaleSlider->setValue(scaleSlider->value() - scaleSlider->singleStep());
-}
-void
-MainWindow::rotateLeft(void)
-{
-	rotateSlider->setValue(rotateSlider->value() - rotateSlider->singleStep());
-}
-void
-MainWindow::rotateRight(void)
-{
-	rotateSlider->setValue(rotateSlider->value() + rotateSlider->singleStep());
-}

@@ -113,14 +113,8 @@ public slots:
 	void on_bgcolor_clicked();
 	void composite_enable();
 	void composite_ean_check();
-	void datamatrix_options();
 	void maxi_primary();
 	void change_print_scale();
-	void scaleRotate();
-	void zoomIn(void);
-	void zoomOut(void);
-	void rotateLeft(void);
-	void rotateRight(void);
 
 private slots:
 	bool save();

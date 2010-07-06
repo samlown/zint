@@ -179,7 +179,7 @@ extern int grid_matrix(struct zint_symbol *symbol, unsigned char source[], int l
 extern int png_handle(struct zint_symbol *symbol, int rotate_angle);
 #endif
 
-extern int render_plot(struct zint_symbol *symbol, unsigned int hide_text, float width, float height);
+extern int render_plot(struct zint_symbol *symbol, float width, float height);
 
 extern int bmp_handle(struct zint_symbol *symbol, int rotate_angle);
 extern int ps_plot(struct zint_symbol *symbol);
@@ -741,11 +741,6 @@ int ZBarcode_Buffer(struct zint_symbol *symbol, int rotate_angle)
 	return error_number;
 }
 
-int ZBarcode_Print_Rotated(struct zint_symbol *symbol, int rotate_angle) {
-	/* Depreciated - will be removed in later version */
-	return ZBarcode_Print(symbol, rotate_angle);
-}
-
 int ZBarcode_Encode_and_Print(struct zint_symbol *symbol, unsigned char *input, int length, int rotate_angle)
 {
 	int error_number;
@@ -774,11 +769,6 @@ int ZBarcode_Encode_and_Buffer(struct zint_symbol *symbol, unsigned char *input,
 
 	error_number = ZBarcode_Buffer(symbol, rotate_angle);
 	return error_number;
-}
-
-int ZBarcode_Encode_and_Print_Rotated(struct zint_symbol *symbol, unsigned char *input, int rotate_angle) {
-	/* Depreciated - will be removed in later version */
-	return ZBarcode_Encode_and_Print(symbol, input, rotate_angle, strlen((char *)input));
 }
 
 int ZBarcode_Encode_File(struct zint_symbol *symbol, char *filename)
@@ -873,8 +863,8 @@ int ZBarcode_Encode_File_and_Buffer(struct zint_symbol *symbol, char *filename, 
  * dimensions. The symbol->scale and symbol->height values are totally ignored in this case.
  *
  */
-int ZBarcode_Render(struct zint_symbol *symbol, unsigned int hide_text, float width, float height)
+int ZBarcode_Render(struct zint_symbol *symbol, float width, float height)
 {
 	// Send the request to the render_plot method
-	return render_plot(symbol, hide_text, width, height);
+	return render_plot(symbol, width, height);
 }

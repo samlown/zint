@@ -313,10 +313,10 @@ void ean13(struct zint_symbol *symbol, unsigned char source[], char dest[])
 	strcpy(parity, "");
 	strcpy(gtin, (char*)source);
 	
-	/* Add the appropriate check digit */
-	length = strlen(gtin);
-	gtin[length] = ean_check(gtin);
-	gtin[length + 1] = '\0';
+	/* Add the appropriate check digit, assuming length is always 13 in total */
+	gtin[12] = 0;
+	gtin[12] = ean_check(gtin);
+	gtin[13] = 0;
 
 	/* Get parity for first half of the symbol */
 	lookup(SODIUM, EAN13Parity, gtin[0], parity);
@@ -355,13 +355,12 @@ void ean13(struct zint_symbol *symbol, unsigned char source[], char dest[])
 void ean8(struct zint_symbol *symbol, unsigned char source[], char dest[])
 { /* Make an EAN-8 barcode when we haven't been given the check digit */
   /* EAN-8 is basically the same as UPC-A but with fewer digits */
-	int length;
 	char gtin[10];
 
 	strcpy(gtin, (char*)source);
-	length = strlen(gtin);
-	gtin[length] = upc_check(gtin);
-	gtin[length + 1] = '\0';
+  gtin[7] = 0;
+	gtin[7] = upc_check(gtin);
+	gtin[8] = 0;
 	upca_draw(gtin, dest);
 	ustrcpy(symbol->text, (unsigned char*)gtin);
 }
@@ -440,7 +439,6 @@ int isbn(struct zint_symbol *symbol, unsigned char source[], const unsigned int 
 			strcpy(symbol->errtxt, "Incorrect ISBN check");
 			return ERROR_INVALID_CHECK;
 		}
-		source[12] = '\0';
 
 		ean13(symbol, source, dest);
 	}
@@ -540,8 +538,8 @@ void ean_leading_zeroes(struct zint_symbol *symbol, unsigned char source[], unsi
 	switch(symbol->symbology) {
 		case BARCODE_EANX:
 		case BARCODE_EANX_CC:
-			if(first_len <= 12) { zfirst_len = 12; }
-			if(first_len <= 7) { zfirst_len = 7; }
+			if(first_len <= 13) { zfirst_len = 12; }
+			if(first_len <= 8) { zfirst_len = 7; }
 			if(second_len == 0) {
 				if(first_len <= 5) { zfirst_len = 5; }
 				if(first_len <= 2) { zfirst_len = 2; }
@@ -658,15 +656,21 @@ int eanx(struct zint_symbol *symbol, unsigned char source[], int src_len)
 			{
 				case 2: add_on(first_part, (char*)dest, 0); ustrcpy(symbol->text, first_part); break;
 				case 5: add_on(first_part, (char*)dest, 0); ustrcpy(symbol->text, first_part); break;
-				case 7: ean8(symbol, first_part, (char*)dest); break;
-				case 12: ean13(symbol, first_part, (char*)dest); break;
+        case 7:
+				case 8:
+          ean8(symbol, first_part, (char*)dest); break;
+				case 12:
+        case 13:  
+          ean13(symbol, first_part, (char*)dest); break;
 				default: strcpy(symbol->errtxt, "Invalid length input"); return ERROR_TOO_LONG; break;
 			}
 			break;
 		case BARCODE_EANX_CC:
 			switch(ustrlen(first_part))
 			{ /* Adds vertical separator bars according to ISO/IEC 24723 section 11.4 */
-				case 7: set_module(symbol, symbol->rows, 1);
+				case 7:
+        case 8:
+          set_module(symbol, symbol->rows, 1);
 					set_module(symbol, symbol->rows, 67);
 					set_module(symbol, symbol->rows + 1, 0);
 					set_module(symbol, symbol->rows + 1, 68);
@@ -677,7 +681,9 @@ int eanx(struct zint_symbol *symbol, unsigned char source[], int src_len)
 					symbol->row_height[symbol->rows + 2] = 2;
 					symbol->rows += 3;
 					ean8(symbol, first_part, (char*)dest); break;
-				case 12:set_module(symbol, symbol->rows, 1);
+				case 12:
+        case 13:
+          set_module(symbol, symbol->rows, 1);
 					set_module(symbol, symbol->rows, 95);
 					set_module(symbol, symbol->rows + 1, 0);
 					set_module(symbol, symbol->rows + 1, 96);
@@ -688,7 +694,7 @@ int eanx(struct zint_symbol *symbol, unsigned char source[], int src_len)
 					symbol->row_height[symbol->rows + 2] = 2;
 					symbol->rows += 3;
 					ean13(symbol, first_part, (char*)dest); break;
-					default: strcpy(symbol->errtxt, "Invalid length EAN input"); return ERROR_TOO_LONG; break;
+				default: strcpy(symbol->errtxt, "Invalid length EAN input"); return ERROR_TOO_LONG; break;
 			}
 			break;
 		case BARCODE_UPCA:

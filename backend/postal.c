@@ -349,9 +349,9 @@ int royal_plot(struct zint_symbol *symbol, unsigned char source[], int length)
 		writer += 2;
 	}
 
-	symbol->row_height[0] = 4;
+	symbol->row_height[0] = 3;
 	symbol->row_height[1] = 2;
-	symbol->row_height[2] = 4;
+	symbol->row_height[2] = 3;
 	symbol->rows = 3;
 	symbol->width = writer - 1;
 	
@@ -363,7 +363,7 @@ int kix_code(struct zint_symbol *symbol, unsigned char source[], int length)
 	/* Handles Dutch Post TNT KIX symbols */
 	/* The same as RM4SCC but without check digit */
 	/* Specification at http://www.tntpost.nl/zakelijk/klantenservice/downloads/kIX_code/download.aspx */
-	char height_pattern[50], localstr[13];
+	char height_pattern[50], localstr[20];
 	unsigned int loopey;
 	int writer, i, h;
 	int error_number; /* zeroes; */
@@ -371,7 +371,7 @@ int kix_code(struct zint_symbol *symbol, unsigned char source[], int length)
 
 	error_number = 0;
 	
-	if(length > 11) {
+	if(length > 18) {
 		strcpy(symbol->errtxt, "Input too long");
 		return ERROR_TOO_LONG;
 	}
@@ -389,7 +389,7 @@ int kix_code(struct zint_symbol *symbol, unsigned char source[], int length)
 	strcpy(localstr, (char *)source);
 	
 	/* Encode data */
-	for (i = 0; i < 11; i++) {
+	for (i = 0; i < 18; i++) {
 		lookup(KRSET, RoyalTable, localstr[i], height_pattern);
 	}
 	
@@ -409,9 +409,9 @@ int kix_code(struct zint_symbol *symbol, unsigned char source[], int length)
 		writer += 2;
 	}
 
-	symbol->row_height[0] = 4;
+	symbol->row_height[0] = 3;
 	symbol->row_height[1] = 2;
-	symbol->row_height[2] = 4;
+	symbol->row_height[2] = 3;
 	symbol->rows = 3;
 	symbol->width = writer - 1;
 	
@@ -463,9 +463,9 @@ int daft_code(struct zint_symbol *symbol, unsigned char source[], int length)
 		writer += 2;
 	}
 	
-	symbol->row_height[0] = 4;
+	symbol->row_height[0] = 3;
 	symbol->row_height[1] = 2;
-	symbol->row_height[2] = 4;
+	symbol->row_height[2] = 3;
 	symbol->rows = 3;
 	symbol->width = writer - 1;
 	
@@ -593,9 +593,9 @@ int japan_post(struct zint_symbol *symbol, unsigned char source[], int length)
 		writer += 2;
 	}
 	
-	symbol->row_height[0] = 2;
+	symbol->row_height[0] = 3;
 	symbol->row_height[1] = 2;
-	symbol->row_height[2] = 2;
+	symbol->row_height[2] = 3;
 	symbol->rows = 3;
 	symbol->width = writer - 1;
 	

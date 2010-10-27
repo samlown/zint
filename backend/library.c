@@ -33,7 +33,7 @@
 struct zint_symbol *ZBarcode_Create()
 {
 	struct zint_symbol *symbol;
-	int i, j;
+	int i;
 	
 	symbol = (struct zint_symbol*)malloc(sizeof(*symbol));
 	if (!symbol) return NULL;
@@ -56,12 +56,10 @@ struct zint_symbol *ZBarcode_Create()
 	symbol->show_hrt = 1; // Show human readable text
 	symbol->input_mode = DATA_MODE;
 	strcpy(symbol->primary, "");
+	memset(&(symbol->encoded_data[0][0]),0,sizeof(symbol->encoded_data));
 	for(i = 0; i < 178; i++) {
-		for(j = 0; j < 1000; j++) {
-			unset_module(symbol, i, j);
-		}
-		symbol->row_height[i] = 0;
-	}
+                symbol->row_height[i] = 0;
+        }
 	symbol->bitmap = NULL;
 	symbol->bitmap_width = 0;
 	symbol->bitmap_height = 0;
@@ -200,6 +198,36 @@ void error_tag(char error_string[], int error_number)
 		
 		concat(error_string, error_buffer);
 	}
+}
+
+int dump_plot(struct zint_symbol *symbol)
+{
+	FILE *f;
+	int i, r;
+
+	if(symbol->output_options & BARCODE_STDOUT) {
+		f = stdout;
+	} else {
+		f = fopen(symbol->outfile, "w");
+		if(!f) {
+			strcpy(symbol->errtxt, "Could not open output file");
+			return ERROR_FILE_ACCESS;
+		}
+	}
+
+	fputs("[\n", f);
+	for (r = 0; r < symbol->rows; r++) {
+		fputs(" [ ", f);
+		for (i = 0; i < symbol->width; i++) {
+			fputs(module_is_set(symbol, r, i) ? "1 " : "0 ", f);
+		}
+		fputs("]\n", f);
+	}
+	fputs("]\n", f);
+
+	fclose(f);
+
+	return 0;
 }
 
 int hibc(struct zint_symbol *symbol, unsigned char source[], int length)
@@ -694,22 +722,22 @@ int ZBarcode_Print(struct zint_symbol *symbol, int rotate_angle)
 		if(!(strcmp(output, "PNG"))) {
 			if(symbol->scale < 1.0) { symbol->text[0] = '\0'; }
 			error_number = png_handle(symbol, rotate_angle);
-		} else {
+		} else
 #endif
-			if(!(strcmp(output, "EPS"))) {
-				error_number = ps_plot(symbol);
-			} else {
-				if(!(strcmp(output, "SVG"))) {
-					error_number = svg_plot(symbol);
-				} else {
-					strcpy(symbol->errtxt, "Unknown output format");
-					error_tag(symbol->errtxt, ERROR_INVALID_OPTION);
-					return ERROR_INVALID_OPTION;
-				}
-			}
-#ifndef NO_PNG
+		if(!(strcmp(output, "TXT"))) {
+			error_number = dump_plot(symbol);
+		} else
+		if(!(strcmp(output, "EPS"))) {
+			error_number = ps_plot(symbol);
+		} else
+		if(!(strcmp(output, "SVG"))) {
+			error_number = svg_plot(symbol);
+		} else
+		{
+			strcpy(symbol->errtxt, "Unknown output format");
+			error_tag(symbol->errtxt, ERROR_INVALID_OPTION);
+			return ERROR_INVALID_OPTION;
 		}
-#endif
 	} else {
 		strcpy(symbol->errtxt, "Unknown output format");
 		error_tag(symbol->errtxt, ERROR_INVALID_OPTION);
@@ -779,22 +807,27 @@ int ZBarcode_Encode_File(struct zint_symbol *symbol, char *filename)
 	unsigned int nRead = 0, n = 0;
 	int ret;
 
-	file = fopen(filename, "rb");
-	if (!file) {
-		strcpy(symbol->errtxt, "Unable to read input file");
-		return ERROR_INVALID_DATA;
-	}
+	if (!strcmp(filename, "-")) {
+		file = stdin;
+		fileLen = 7100;
+	} else {
+		file = fopen(filename, "rb");
+		if (!file) {
+			strcpy(symbol->errtxt, "Unable to read input file");
+			return ERROR_INVALID_DATA;
+		}
 	
-	/* Get file length */
-	fseek(file, 0, SEEK_END);
-	fileLen = ftell(file);
-	fseek(file, 0, SEEK_SET);
+		/* Get file length */
+		fseek(file, 0, SEEK_END);
+		fileLen = ftell(file);
+		fseek(file, 0, SEEK_SET);
 	
-	if(fileLen > 7100) {
-		/* The largest amount of data that can be encoded is 7089 numeric digits in QR Code */
-		strcpy(symbol->errtxt, "Input file too long");
-		fclose(file);
-		return ERROR_INVALID_DATA;
+		if(fileLen > 7100) {
+			/* The largest amount of data that can be encoded is 7089 numeric digits in QR Code */
+			strcpy(symbol->errtxt, "Input file too long");
+			fclose(file);
+			return ERROR_INVALID_DATA;
+		}
 	}
 	
 	/* Allocate memory */

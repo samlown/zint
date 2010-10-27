@@ -91,6 +91,7 @@ void usage(void)
 		"  --directpng           Send PNG output to stdout\n"
 		"  --directeps           Send EPS output to stdout\n"
 		"  --directsvg           Send SVG output to stdout\n"
+		"  --dump                Dump binary data to stdout\n"
 		"  --rotate=NUMBER       Rotate symbol (PNG output only).\n"
 		"  --cols=NUMBER         (PDF417) Number of columns.\n"
 		"  --vers=NUMBER         (QR Code) Version\n"
@@ -101,7 +102,8 @@ void usage(void)
 		"  --binary              Treat input as Binary data\n"
 		"  --notext              Remove human readable text\n"
 		"  --square              Force Data Matrix symbols to be square\n"
-	, ZINT_VERSION);
+		"  --init                Create reader initialisation symbol (Code 128)\n"
+		, ZINT_VERSION);
 }
 
 int validator(char test_string[], char source[])
@@ -193,6 +195,7 @@ int main(int argc, char **argv)
 			{"directeps", 0, 0, 0},
 			{"directpng", 0, 0, 0},
 			{"directsvg", 0, 0, 0},
+			{"dump", 0, 0, 0},
 			{"barcode", 1, 0, 'b'},
 			{"height", 1, 0, 0},
 			{"whitesp", 1, 0, 'w'},
@@ -216,6 +219,7 @@ int main(int argc, char **argv)
 			{"binary", 0, 0, 0},
 			{"notext", 0, 0, 0},
 			{"square", 0, 0, 0},
+			{"init", 0, 0, 0},
 			{0, 0, 0, 0}
 		};
 		c = getopt_long(argc, argv, "htb:w:d:o:i:rcmp", long_options, &option_index);
@@ -229,6 +233,9 @@ int main(int argc, char **argv)
 				if(!strcmp(long_options[option_index].name, "box")) {
 					my_symbol->output_options += BARCODE_BOX;
 				}
+				if(!strcmp(long_options[option_index].name, "init")) {
+					my_symbol->output_options += READER_INIT;
+				}
 				if(!strcmp(long_options[option_index].name, "directeps")) {
 					my_symbol->output_options += BARCODE_STDOUT;
 					strncpy(my_symbol->outfile, "dummy.eps", 10);
@@ -240,6 +247,10 @@ int main(int argc, char **argv)
 				if(!strcmp(long_options[option_index].name, "directsvg")) {
 					my_symbol->output_options += BARCODE_STDOUT;
 					strncpy(my_symbol->outfile, "dummy.svg", 10);
+				}
+				if(!strcmp(long_options[option_index].name, "dump")) {
+					my_symbol->output_options += BARCODE_STDOUT;
+					strncpy(my_symbol->outfile, "dummy.txt", 10);
 				}
 				if(!strcmp(long_options[option_index].name, "gs1")) {
 					my_symbol->input_mode = GS1_MODE;

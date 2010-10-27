@@ -163,20 +163,32 @@ static void ecc200placement(int *array, int NR, int NC)
 }
 
 // calculate and append ecc code, and if necessary interleave
-static void ecc200(unsigned char *binary, int bytes, int datablock, int rsblock)
+static void ecc200(unsigned char *binary, int bytes, int datablock, int rsblock, int skew)
 {
 	int blocks = (bytes + 2) / datablock, b;
+	int n, p;
 	rs_init_gf(0x12d);
 	rs_init_code(rsblock, 1);
 	for (b = 0; b < blocks; b++) {
 		unsigned char buf[256], ecc[256];
-		int n, p = 0;
+		p = 0;
 		for (n = b; n < bytes; n += blocks)
 			buf[p++] = binary[n];
 		rs_encode(p, buf, ecc);
 		p = rsblock - 1;	// comes back reversed
-		for (n = b; n < rsblock * blocks; n += blocks)
-			binary[bytes + n] = ecc[p--];
+		for (n = b; n < rsblock * blocks; n += blocks) {
+			if (skew) {
+				/* Rotate ecc data to make 144x144 size symbols acceptable */
+				/* See http://groups.google.com/group/postscriptbarcode/msg/5ae8fda7757477da */
+				if(b < 8) {
+					binary[bytes + n + 2] = ecc[p--];
+				} else {
+					binary[bytes + n - 8] = ecc[p--];
+				}
+			} else {
+				binary[bytes + n] = ecc[p--];
+			}
+		}
 	}
 	rs_free();
 }
@@ -763,8 +775,8 @@ void add_tail(unsigned char target[], int tp, int tail_length, int last_mode)
 
 int data_matrix_200(struct zint_symbol *symbol, unsigned char source[], int length)
 {
-	int inputlen, i;
-	unsigned char binary[2000];
+	int inputlen, i, skew = 0;
+	unsigned char binary[2200];
 	int binlen;
 	int symbolsize, optionsize, calcsize;
 	int taillength, error_number = 0;
@@ -831,7 +843,8 @@ int data_matrix_200(struct zint_symbol *symbol, unsigned char source[], int leng
 	}
 	
 	// ecc code
-	ecc200(binary, bytes, datablock, rsblock);
+	if(symbolsize == 29) { skew = 1; }
+	ecc200(binary, bytes, datablock, rsblock, skew);
 	{			// placement
 		int x, y, NC, NR, *places;
 		NC = W - 2 * (W / FW);

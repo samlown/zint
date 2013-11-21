@@ -84,6 +84,38 @@ struct zint_symbol {
 	struct zint_render *rendered;
 };
 
+/*DataMatrix dimensions*/
+#define DMTX_AUTO    = 0;
+#define DMTX_10x10   = 1;
+#define DMTX_12x12   = 2;
+#define DMTX_14x14   = 3;
+#define DMTX_16x16   = 4;
+#define DMTX_18x18   = 5;
+#define DMTX_20x20   = 6;
+#define DMTX_22x22   = 7;
+#define DMTX_24x24   = 8;
+#define DMTX_26x26   = 9;
+#define DMTX_32x32   = 10;
+#define DMTX_36x36   = 11;
+#define DMTX_40x40   = 12;
+#define DMTX_44x44   = 13;
+#define DMTX_48x48   = 14;
+#define DMTX_52x52   = 15;
+#define DMTX_64x64   = 16;
+#define DMTX_72x72   = 17;
+#define DMTX_80x80   = 18;
+#define DMTX_88x88   = 19;
+#define DMTX_96x96   = 20;
+#define DMTX_104x104 = 21;
+#define DMTX_120x120 = 22;
+#define DMTX_132x132 = 23;
+#define DMTX_144x144 = 24;
+#define DMTX_8x18    = 25;
+#define DMTX_8x32    = 26;
+#define DMTX_12x26   = 27;
+#define DMTX_12x36   = 28;
+#define DMTX_16x36   = 29;
+#define DMTX_16x48   = 30;
 
 /* Tbarcode 7 codes */
 #define BARCODE_CODE11		1
